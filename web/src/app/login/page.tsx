@@ -1,13 +1,58 @@
-import Link from 'next/link'
-
+'use client';
+import { signIn, useSession } from 'next-auth/react';
+import Link from 'next/link';
+import { redirect, useSearchParams } from 'next/navigation';
+import { FormEvent, Suspense, useEffect, useState } from 'react';
+import LoadingSpinner from '../components/spinner/LoadingSpinner';
+import Processing from '../components/spinner/Processing';
 const LoginPage = () => {
+    const { data: session } = useSession();
+    const searchParams = useSearchParams();
+    const callbackUrl = searchParams.get('callbackUrl');
+    const redirectEndpoint = callbackUrl?.split('3000')[1];
+
+    const [loading, setLoading] = useState(false);
+
+    // Handle login form submission
+    const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setLoading(true);
+        const form = e.target as HTMLFormElement;
+        const email: string = form.email.value;
+        const password: string = form.password.value;
+        try {
+            await signIn('credentials', {
+                email,
+                password,
+                redirect: false,
+            });
+            setLoading(false);
+        } catch (error: any) {
+            setLoading(false);
+            throw new Error(error.message);
+        }
+    };
+    // Use useEffect to handle redirection based on session and callbackUrl
+    useEffect(() => {
+        if (session) {
+            if (redirectEndpoint) {
+                redirect(`${redirectEndpoint}`);
+            } else {
+                if (session?.user.role === 'admin') {
+                    redirect('/admin/dashboard');
+                } else {
+                    redirect('/dashboard');
+                }
+            }
+        }
+    }, [session, redirectEndpoint]);
     return (
         <div className='w-11/12 md:w-10/12 mx-auto my-5 md:my-10 flex justify-center'>
             <div className="w-full flex flex-col max-w-md p-4 md:p-6 rounded-r-md bg-gray-100 text-gray-900 shadow-2xl">
                 <div className="mb-2 md:mb-8 text-center">
                     <h1 className="my-2 md:my-3 text-2xl md:text-4xl font-bold text-primary">Login</h1>
                 </div>
-                <form className="space-y-12">
+                <form onSubmit={handleLogin} className="space-y-12">
                     <div className="space-y-4">
                         <div>
                             <label htmlFor="email" className="block mb-2 text-sm">Email address</label>
@@ -24,7 +69,7 @@ const LoginPage = () => {
                     <div className="space-y-2">
                         <div>
                             <button type="submit" className="w-full flex items-center justify-center px-8 py-3 font-semibold rounded-md bg-primary text-white">
-                                Login
+                                {loading ? <Processing title={'Processing'} /> : 'Login'}
                             </button>
                         </div>
                     </div>
@@ -36,4 +81,11 @@ const LoginPage = () => {
         </div>
     )
 }
-export default LoginPage
+
+const LoginPageWrapper = () => (
+    <Suspense fallback={<LoadingSpinner />}>
+        <LoginPage />
+    </Suspense>
+);
+
+export default LoginPageWrapper;

@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import { Fira_Code } from "next/font/google";
 import { ReactNode } from 'react';
-import HeaderNavigation from './components/shared/HeaderNavigation';
+import { Toaster } from 'react-hot-toast';
+import HeaderNav from './components/shared/HeaderNav';
+import DataProvider from './context/DataContext';
 import "./globals.css";
+import AuthProvider from './provider/AuthProvider';
 
 const inter = Fira_Code({
   subsets: ["latin"],
@@ -24,12 +27,17 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-      className={`${inter.variable} fira_code`}
+        className={`${inter.variable} fira_code`}
       >
-        <HeaderNavigation />
-        <div className='min-h-[70vh]'>
-          {children}
-        </div>
+        <DataProvider>
+          <AuthProvider>
+            <HeaderNav />
+            <div className='min-h-[70vh]'>
+              {children}
+            </div>
+          </AuthProvider>
+        </DataProvider>
+        <Toaster />
       </body>
     </html>
   );

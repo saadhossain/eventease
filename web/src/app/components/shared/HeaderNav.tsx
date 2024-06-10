@@ -3,7 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import EventEase from '/public/eventease-logo.png';
 import { usePathname } from 'next/navigation';
-const HeaderNavigation = () => {
+const HeaderNav = () => {
     const activePath = usePathname();
     const navStyle = `hover:text-secondary duration-300 ease-in-out}`;
     return (
@@ -18,4 +18,4 @@ const HeaderNavigation = () => {
     );
 };
 
-export default HeaderNavigation;
+export default HeaderNav;
