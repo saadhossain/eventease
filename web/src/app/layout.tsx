@@ -6,6 +6,7 @@ import HeaderNav from './components/shared/HeaderNav';
 import DataProvider from './context/DataContext';
 import "./globals.css";
 import AuthProvider from './provider/AuthProvider';
+import StoreProvider from './provider/StoreProvider';
 
 const inter = Fira_Code({
   subsets: ["latin"],
@@ -29,14 +30,16 @@ export default function RootLayout({
       <body
         className={`${inter.variable} fira_code`}
       >
-        <DataProvider>
-          <AuthProvider>
-            <HeaderNav />
-            <div className='min-h-[70vh]'>
-              {children}
-            </div>
-          </AuthProvider>
-        </DataProvider>
+        <StoreProvider>
+          <DataProvider>
+            <AuthProvider>
+              <HeaderNav />
+              <div className='min-h-[70vh]'>
+                {children}
+              </div>
+            </AuthProvider>
+          </DataProvider>
+        </StoreProvider>
         <Toaster />
       </body>
     </html>
