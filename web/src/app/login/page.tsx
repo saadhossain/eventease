@@ -2,21 +2,25 @@
 import { signIn, useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { redirect, useSearchParams } from 'next/navigation';
-import { FormEvent, Suspense, useEffect, useState } from 'react';
+import { FormEvent, Suspense, useEffect } from 'react';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import LoadingSpinner from '../components/spinner/LoadingSpinner';
 import Processing from '../components/spinner/Processing';
+import { setIsShowPassword, setLoading } from '../lib/features/commonSlice';
+import { useAppDispatch, useAppSelector } from '../lib/hooks';
 const LoginPage = () => {
     const { data: session } = useSession();
     const searchParams = useSearchParams();
     const callbackUrl = searchParams.get('callbackUrl');
     const redirectEndpoint = callbackUrl?.split('3000')[1];
 
-    const [loading, setLoading] = useState(false);
+    const dispatch = useAppDispatch();
+    const { isShowPassword, loading } = useAppSelector((state) => state.common)
 
     // Handle login form submission
     const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        setLoading(true);
+        dispatch(setLoading());
         const form = e.target as HTMLFormElement;
         const email: string = form.email.value;
         const password: string = form.password.value;
@@ -26,9 +30,9 @@ const LoginPage = () => {
                 password,
                 redirect: false,
             });
-            setLoading(false);
+            dispatch(setLoading());
         } catch (error: any) {
-            setLoading(false);
+            dispatch(setLoading());
             throw new Error(error.message);
         }
     };
@@ -63,7 +67,10 @@ const LoginPage = () => {
                                 <label htmlFor="password" className="text-sm">Password</label>
                                 <Link href="/login" className="text-md hover:text-primary">Forgot password?</Link>
                             </div>
-                            <input type='password' name="password" id="password" placeholder="***********" className="w-full px-3 py-2 rounded-md bg-gray-300 text-gray-900 focus:outline-none" />
+                            <input type={`${isShowPassword ? 'password' : 'text'}`} name="password" id="password" placeholder="***********" className="w-full px-3 py-2 rounded-md bg-gray-300 text-gray-900 focus:outline-none" />
+                            <div onClick={() => dispatch(setIsShowPassword())} className='cursor-pointer absolute top-11 right-2'>
+                                {isShowPassword ? <FaEye /> : <FaEyeSlash />}
+                            </div>
                         </div>
                     </div>
                     <div className="space-y-2">

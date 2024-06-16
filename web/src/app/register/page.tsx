@@ -4,34 +4,40 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { FormEvent, useContext, useState } from 'react';
 import toast from 'react-hot-toast';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import Processing from '../components/spinner/Processing';
 import { DataContext } from '../context/DataContext';
 import { useHandleInputChange } from '../hooks/useHandleInputChange';
+import { setIsShowPassword, setLoading } from '../lib/features/commonSlice';
+import { useAppDispatch, useAppSelector } from '../lib/hooks';
 import { DataContextType } from '../types/DataContextTypes';
 import { saveToDatabase } from '../utils/saveToDatabase';
 import { uploadImgToImgbb } from '../utils/uploadImgToDB';
 
 const RegisterPage = () => {
-    const { loading, setLoading, formData } = useContext(DataContext) as DataContextType;
+    const { formData } = useContext(DataContext) as DataContextType;
     const { data: session } = useSession();
     const [error, setError] = useState('');
+
+    const dispatch = useAppDispatch();
+    const { isShowPassword, loading } = useAppSelector((state) => state.common)
     //Get the useHandleInputChange hook to get all the input
     const handleInputChange = useHandleInputChange();
     //Save the User to the Database.
     const handleUserRegistration = async (e: FormEvent<HTMLFormElement>) => {
-        setLoading(true);
+        dispatch(setLoading());
         e.preventDefault();
         const form = e.target as HTMLFormElement;
         //Validations
         if (!formData.email || !formData.name || !formData.password) {
             setError('All fields are required.');
-            setLoading(false);
+            dispatch(setLoading());
             return;
         }
 
         if (formData.password.length < 10) {
             setError('Password must be at least 10 characters long');
-            setLoading(false);
+            dispatch(setLoading());
             return;
         }
 
@@ -40,7 +46,7 @@ const RegisterPage = () => {
         //check if image uploaded
         if (!imageInput) {
             setError('Please upload the image, its required.');
-            setLoading(false);
+            dispatch(setLoading());
             return;
         }
         const imageFormData = new FormData();
@@ -57,7 +63,7 @@ const RegisterPage = () => {
             const data = await saveToDatabase('/users', userData);
             if (data.status) {
                 form.reset();
-                setLoading(false);
+                dispatch(setLoading());
                 toast.success('New User Added Successfully.');
                 signIn('credentials', {
                     email: formData.email,
@@ -68,7 +74,7 @@ const RegisterPage = () => {
             }
         } catch (error: any) {
             console.log(error.message);
-            setLoading(false);
+            dispatch(setLoading());
         }
     };
     //After registration redirect the user to dashboard page
@@ -98,11 +104,18 @@ const RegisterPage = () => {
                             />
                         </div>
                         <div className='relative'>
-                            <label htmlFor="password" className="text-sm">Password</label>
-                            <input type='password' name="password" id="password" placeholder="***************" className="w-full px-3 py-2 rounded-md text-gray-900 bg-gray-300 focus:outline-none"
+                            <div className="flex justify-between mb-2">
+                                <label htmlFor="password" className="text-sm">Password</label>
+                                <Link href="/login" className="text-md hover:text-primary">Forgot password?</Link>
+                            </div>
+                            <input type={`${isShowPassword ? 'password' : 'text'}`} name="password" id="password" placeholder="***********"
+                                className="w-full px-3 py-2 rounded-md bg-gray-300 text-gray-900 focus:outline-none"
                                 required
                                 onChange={handleInputChange}
                             />
+                            <div onClick={() => dispatch(setIsShowPassword())} className='cursor-pointer absolute top-11 right-2'>
+                                {isShowPassword ? <FaEye /> : <FaEyeSlash />}
+                            </div>
                         </div>
                         <div>
                             <label htmlFor="profileImage" className="text-sm">Select Profile Image</label>

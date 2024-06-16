@@ -1,10 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit'
+import commonReducer from './features/commonSlice'
 import counterReducer from './features/counterSlice'
 
 export const makeStore = () => {
     return configureStore({
         reducer: {
-            counter: counterReducer
+            counter: counterReducer,
+            common: commonReducer
         }
     })
 }
